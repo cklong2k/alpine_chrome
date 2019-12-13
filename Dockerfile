@@ -17,6 +17,7 @@ RUN echo @edge http://dl-cdn.alpinelinux.org/alpine/v3.10/community > /etc/apk/r
     && apk add --no-cache \
     libstdc++@edge \
     chromium@edge \
+    chromium-chromedriver@edge \
     harfbuzz@edge \
     nss@edge \
     freetype@edge \
@@ -24,13 +25,17 @@ RUN echo @edge http://dl-cdn.alpinelinux.org/alpine/v3.10/community > /etc/apk/r
     && rm -rf /var/cache/* \
     && mkdir /var/cache/apk
 
+RUN apk add python@edge py-pip@edge curl@edge unzip@edge libexif@edge udev@edge xvfb@edge && \
+	pip install selenium && \
+	pip install pyvirtualdisplay
+
 # Add Chrome as a user
 RUN mkdir -p /usr/src/app \
     && adduser -D chrome \
     && chown -R chrome:chrome /usr/src/app
     
 # Run Chrome as non-privileged
-USER chrome
+USER root
 COPY ./script.sh /home/chrome
 WORKDIR /usr/src/app
 
@@ -38,5 +43,5 @@ ENV CHROME_BIN=/usr/bin/chromium-browser \
     CHROME_PATH=/usr/lib/chromium/
 
 # Autorun chrome headless with no GPU
-#ENTRYPOINT ["chromium-browser", "--headless", "--disable-gpu", "--disable-software-rasterizer", "--disable-dev-shm-usage"]
+# ENTRYPOINT ["chromium-browser", "--headless", "--disable-gpu", "--disable-software-rasterizer", "--disable-dev-shm-usage"]
 ENTRYPOINT ["/home/chrome/script.sh"]
