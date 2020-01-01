@@ -49,7 +49,11 @@ ENV CHROME_BIN=/usr/bin/chromium-browser \
     CHROME_PATH=/usr/lib/chromium/
 
 COPY --chown=chrome package.json package-lock.json ./
+
 RUN npm install express mustache-express puppeteer --save
+
 COPY --chown=chrome . ./
+
 ENTRYPOINT ["tini", "--"]
+
 CMD ["node", "src/app"]
