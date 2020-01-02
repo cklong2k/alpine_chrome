@@ -2,6 +2,7 @@ const express = require('express')
 const mustacheExpress = require('mustache-express')
 const puppeteer = require('puppeteer')
 const bodyParser = require("body-parser");
+const QRCode = require("qrcode");
 const app = express()
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -19,8 +20,15 @@ app.post('/export/html', (req, res) => {
     res.send(req.body.url)
 })
 
+app.get('/export/qrcode', (req, res) => {
+    QRCode.toDataURL('I am a pony!', function (err, url) {
+        res.send(url)
+        console.log(url)
+    })
+})
+
 app.get('/export/pdf', (req, res) => {
-    // POST json
+    // BODY json
     res.send(req.body.url)
 })
 

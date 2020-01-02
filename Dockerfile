@@ -13,22 +13,23 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD 1
 ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium-browser
 
 # Installs latest Chromium package.
-RUN echo @edge http://dl-cdn.alpinelinux.org/alpine/v3.10/community > /etc/apk/repositories \
-    && echo @edge http://dl-cdn.alpinelinux.org/alpine/v3.10/main >> /etc/apk/repositories \
-    && echo @edge http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories \
+RUN echo http://dl-cdn.alpinelinux.org/alpine/v3.10/community > /etc/apk/repositories \
+    && echo http://dl-cdn.alpinelinux.org/alpine/v3.10/main >> /etc/apk/repositories \
+    && echo http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories \
     && apk add --no-cache \
-    libstdc++@edge \
-    chromium@edge \
-    chromium-chromedriver@edge \
-    harfbuzz@edge \
-    nss@edge \
-    freetype@edge \
-    ttf-freefont@edge \
+    libstdc++ \
+    chromium \
+    chromium-chromedriver \
+    harfbuzz \
+    nss \
+    sudo \
+    freetype \
+    ttf-freefont \
     && rm -rf /var/cache/* \
     && mkdir /var/cache/apk
 
 # node
-RUN apk add --no-cache tini@edge make@edge gcc@edge g++@edge python@edge git@edge nodejs@edge nodejs-npm@edge yarn@edge \
+RUN apk add --no-cache tini make gcc g++ python git nodejs nodejs-npm yarn \
     && apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing wqy-zenhei \
 	&& rm -rf /var/lib/apt/lists/* \
     /var/cache/apk/* \
@@ -42,7 +43,7 @@ RUN mkdir -p /usr/src/app \
     
 # Run Chrome as non-privileged
 USER chrome
-COPY ./script.sh /home/chrome
+# COPY ./script.sh /home/chrome
 WORKDIR /usr/src/app
 
 ENV CHROME_BIN=/usr/bin/chromium-browser \
@@ -50,7 +51,7 @@ ENV CHROME_BIN=/usr/bin/chromium-browser \
 
 COPY --chown=chrome package.json package-lock.json ./
 
-RUN npm install express mustache-express puppeteer --save
+RUN npm install express mustache-express puppeteer qrcode --save
 
 COPY --chown=chrome . ./
 
