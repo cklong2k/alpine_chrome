@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+    html2pdf:
+        image: cklong2k/alpine-chrome-tw:latest
+        ports:
+            - 8080:3000
+        cap_add:
+            - SYS_ADMIN
+        entrypoint: ["tini", "--"]
+        command: ["node", "src/app"]

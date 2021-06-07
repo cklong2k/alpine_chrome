@@ -41,10 +41,36 @@ app.post('/export/pdf', (req, res) => {
 
         const buffer = await page.pdf({
             printBackground: true,
-            format: "A4"})
+            format: "A4"
+        })
         res.type('application/pdf')
         res.send(buffer)
         browser.close()
+    })()
+})
+
+app.post('/export/png', (req, res) => {
+    (async () => {
+        var url = req.body.url
+        const browser = await puppeteer.launch()
+        const page = await browser.newPage()
+        await page.goto(url, {
+            waitUntil: 'networkidle0',
+            timeout: 60000
+        })
+        // Get scroll height of the rendered page and set viewport
+        const bodyHeight = await page.evaluate(() => document.body.scrollHeight);
+        // const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
+        await page.setViewport({ width: 1280, height: bodyHeight });
+
+        const b64string = await page.screenshot({
+            encoding: "base64",
+            fullPage: true,
+        });
+        const buffer = Buffer.from(b64string, "base64");
+        await browser.close()
+        res.type('image/png')
+        res.send(buffer);
     })()
 })
 
