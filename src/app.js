@@ -37,7 +37,15 @@ app.post('/export/pdf', (req, res) => {
         var url = req.body.url
         const browser = await puppeteer.launch()
         const page = await browser.newPage()
-        await page.goto(url)
+        await page.goto(url, {
+            waitUntil: 'networkidle0',
+            timeout: 60000
+        })
+
+        // await page.waitForSelector('#example', {
+        //     visible: true,
+        // });
+        await page.waitForTimeout(1500);
 
         const buffer = await page.pdf({
             printBackground: true,
@@ -58,6 +66,12 @@ app.post('/export/png', (req, res) => {
             waitUntil: 'networkidle0',
             timeout: 60000
         })
+        // https://stackoverflow.com/questions/52497252/puppeteer-wait-until-page-is-completely-loaded
+        // await page.waitForSelector('#example', {
+        //     visible: true,
+        // });
+        await page.waitForTimeout(1500);
+
         // Get scroll height of the rendered page and set viewport
         const bodyHeight = await page.evaluate(() => document.body.scrollHeight);
         // const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
