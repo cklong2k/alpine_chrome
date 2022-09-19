@@ -37,22 +37,27 @@ app.post('/export/pdf', (req, res) => {
         var url = req.body.url
         const browser = await puppeteer.launch()
         const page = await browser.newPage()
-        await page.goto(url, {
+        result = await page.goto(url, {
             waitUntil: 'networkidle0',
             timeout: 60000
         })
 
-        // await page.waitForSelector('#example', {
-        //     visible: true,
-        // });
-        await page.waitForTimeout(1500);
+        if (result.status() === 404) {
+            console.error('404 status code found in result', url)
+            res.sendStatus(404);
+        } else {
+            // await page.waitForSelector('#example', {
+            //     visible: true,
+            // });
+            await page.waitForTimeout(1500);
 
-        const buffer = await page.pdf({
-            printBackground: true,
-            format: "A4"
-        })
-        res.type('application/pdf')
-        res.send(buffer)
+            const buffer = await page.pdf({
+                printBackground: true,
+                format: "A4"
+            })
+            res.type('application/pdf')
+            res.send(buffer)
+        }
         browser.close()
     })()
 })
@@ -66,25 +71,31 @@ app.post('/export/png', (req, res) => {
             waitUntil: 'networkidle0',
             timeout: 60000
         })
-        // https://stackoverflow.com/questions/52497252/puppeteer-wait-until-page-is-completely-loaded
-        // await page.waitForSelector('#example', {
-        //     visible: true,
-        // });
-        await page.waitForTimeout(1500);
+        if (result.status() === 404) {
+            console.error('404 status code found in result', url)
+            res.sendStatus(404);
+            browser.close()
+        } else {
+            // https://stackoverflow.com/questions/52497252/puppeteer-wait-until-page-is-completely-loaded
+            // await page.waitForSelector('#example', {
+            //     visible: true,
+            // });
+            await page.waitForTimeout(1500);
 
-        // Get scroll height of the rendered page and set viewport
-        const bodyHeight = await page.evaluate(() => document.body.scrollHeight);
-        // const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
-        await page.setViewport({ width: 1280, height: bodyHeight });
+            // Get scroll height of the rendered page and set viewport
+            const bodyHeight = await page.evaluate(() => document.body.scrollHeight);
+            // const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
+            await page.setViewport({ width: 1280, height: bodyHeight });
 
-        const b64string = await page.screenshot({
-            encoding: "base64",
-            fullPage: true,
-        });
-        const buffer = Buffer.from(b64string, "base64");
-        await browser.close()
-        res.type('image/png')
-        res.send(buffer);
+            const b64string = await page.screenshot({
+                encoding: "base64",
+                fullPage: true,
+            });
+            const buffer = Buffer.from(b64string, "base64");
+            await browser.close()
+            res.type('image/png')
+            res.send(buffer);
+        }
     })()
 })
 
