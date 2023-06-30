@@ -16,3 +16,11 @@ docker container run -it --rm -p 8080:3000 --cap-add=SYS_ADMIN cklong2k/alpine-c
 docker commit 4898794ace08 cklong2k/alpine-chrome-tw:latest
 
 docker push cklong2k/alpine-chrome-tw:latest
+
+# Test
+
+curl --location 'http://localhost/export/pdf' \
+--header 'Content-Type: application/json' \
+--data '{
+    "url": "https://tw.yahoo.com"
+}'
