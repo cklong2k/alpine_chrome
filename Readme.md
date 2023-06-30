@@ -6,6 +6,12 @@
 - 可以等網頁渲染完成
 - PDF檔案相等於瀏覽器直接輸出成檔案
 
+Output the URL to PDF
+
+Can include Chinese characters
+Can wait for the webpage to finish rendering
+The PDF file is equivalent to directly outputting the browser as a file
+
 # Build
 
 docker image build -t cklong2k/alpine-chrome-tw .
