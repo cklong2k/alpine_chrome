@@ -1,3 +1,11 @@
+# Info
+
+把網址URL輸出到PDF
+
+- 可以包含中文字
+- 可以等網頁渲染完成
+- PDF檔案相等於瀏覽器直接輸出成檔案
+
 # Build
 
 docker image build -t cklong2k/alpine-chrome-tw .
