@@ -14,8 +14,23 @@ The PDF file is equivalent to directly outputting the browser as a file
 
 # Build
 
+## 針對當前平台建置
 docker image build -t cklong2k/alpine-chrome-tw .
 
+## 針對特定平台建置
+docker image build --platform=linux/amd64 -t cklong2k/alpine-chrome-tw .
+
+## 針對 ARM64 平台建置
+docker image build --platform=linux/arm64 -t cklong2k/alpine-chrome-tw .
+
+## 建置多平台映像（需要 buildx）
+docker buildx build --platform=linux/amd64,linux/arm64 -t cklong2k/alpine-chrome-tw .
+
+## 建置多平台映像並推送到 registry
+docker buildx build --platform=linux/amd64,linux/arm64 -t cklong2k/alpine-chrome-tw --push .
+
+## 如果要建置並載入到本地 Docker
+docker buildx build --platform=linux/amd64 -t cklong2k/alpine-chrome-tw --load .
 
 # Run
 
@@ -23,7 +38,7 @@ docker-compose up -d
 
 or
 
-docker container run -it --rm -p 8080:3000 --cap-add=SYS_ADMIN cklong2k/alpine-chrome-tw
+docker container run -d -it --name=alpine-chrome-tw -p 8080:3000 --cap-add=SYS_ADMIN cklong2k/alpine-chrome-tw
 
 # Commit
 
