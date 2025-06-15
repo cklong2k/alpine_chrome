@@ -1,9 +1,11 @@
 const express = require('express')
 const mustacheExpress = require('mustache-express')
-const puppeteer = require('puppeteer')
+const puppeteer = require('puppeteer');
+const { URL } = require('url');
 const bodyParser = require("body-parser");
 const QRCode = require("qrcode");
 const app = express()
+const { Readable } = require('stream');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -34,31 +36,63 @@ app.get('/export/pdf', (req, res) => {
 
 app.post('/export/pdf', (req, res) => {
     (async () => {
-        var url = req.body.url
-        const browser = await puppeteer.launch()
-        const page = await browser.newPage()
-        result = await page.goto(url, {
-            waitUntil: 'networkidle0',
-            timeout: 60000
-        })
+        var url = req.body.url;
 
-        if (result.status() === 404) {
-            console.error('404 status code found in result', url)
-            res.sendStatus(404);
-        } else {
-            // await page.waitForSelector('#example', {
-            //     visible: true,
-            // });
-            await page.waitForTimeout(1500);
+        console.log(url);
 
-            const buffer = await page.pdf({
-                printBackground: true,
-                format: "A4"
-            })
-            res.type('application/pdf')
-            res.send(buffer)
+        // Launch the browser and open a new blank page
+        const browser = await puppeteer.launch({
+            headless: 'new', // 使用新 headless 模式
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        });
+        const page = await browser.newPage();
+
+        // 設定頁面超時
+        page.setDefaultNavigationTimeout(45000);
+        page.setDefaultTimeout(45000);
+
+        try {
+            await page.goto(url, {
+                waitUntil: ['networkidle0', 'domcontentloaded'],
+                timeout: 60000
+            });
+        } catch (e) {
+            console.log('等待網頁載入超時，繼續執行...');
         }
-        browser.close()
+
+        const pdfBuffer = await page.pdf({
+            format: 'A4',
+            printBackground: true,
+            margin: {
+                top: '20mm',
+                bottom: '20mm',
+                left: '15mm',
+                right: '15mm',
+            },
+        });
+
+        // 建立 ReadableStream
+        const pdfStream = new Readable({
+            read() { }
+        });
+
+        // 設定回應標頭
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Length', pdfBuffer.length);
+
+        // 推送資料到 stream
+        pdfStream.push(pdfBuffer);
+        pdfStream.push(null); // 結束 stream
+
+        // 管道連接到回應
+        pdfStream.pipe(res);
+
+        // 監聽結束事件
+        pdfStream.on('end', async () => {
+            if (browser) {
+                await browser.close();
+            }
+        });
     })()
 })
 

@@ -33,8 +33,7 @@ docker push cklong2k/alpine-chrome-tw:latest
 
 # Test
 
-curl --location 'http://localhost/export/pdf' \
---header 'Content-Type: application/json' \
---data '{
-    "url": "https://tw.yahoo.com"
-}'
+curl -X POST http://localhost:8080/export/pdf \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.google.com"}' \
+  --output test.pdf

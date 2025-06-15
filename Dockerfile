@@ -1,46 +1,54 @@
-FROM alpine:3.10
+FROM node:20-alpine
 
 ARG BUILD_DATE
 ARG VCS_REF
 ARG APP_LOCALE=zh_TW
 ARG APP_CHARSET=UTF-8
 
-COPY ./fonts/ /usr/share/fonts/
-
+# 設定環境變數
 ENV LANG=zh_TW.UTF-8 \
-    LANGUAGE=zh_TW.UTF-8
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD 1
-ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium-browser
+    LANGUAGE=zh_TW.UTF-8 \
+    LC_ALL=zh_TW.UTF-8
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV CHROME_BIN=/usr/bin/chromium-browser
+ENV CHROME_PATH=/usr/lib/chromium/
 
-# Installs latest Chromium package.
-RUN echo http://dl-cdn.alpinelinux.org/alpine/v3.10/community > /etc/apk/repositories \
-    && echo http://dl-cdn.alpinelinux.org/alpine/v3.10/main >> /etc/apk/repositories \
-    && echo http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories \
-    && apk add --no-cache \
-    libstdc++ \
+# 安裝系統依賴和 Chromium
+RUN apk add --no-cache \
+    # 基本工具
+    curl \
+    tini \
+    sudo \
+    # 編譯工具 (如果需要編譯原生模組)
+    make \
+    gcc \
+    g++ \
+    python3 \
+    # Chromium 相關
     chromium \
     chromium-chromedriver \
+    # 字體和渲染支援
+    libstdc++ \
     harfbuzz \
     nss \
-    sudo \
     freetype \
     ttf-freefont \
-    && rm -rf /var/cache/* \
-    && mkdir /var/cache/apk
+    font-noto-cjk \
+    # 清理快取
+    && rm -rf /var/cache/apk/*
 
-# node
-RUN apk add --no-cache tini make gcc g++ python git nodejs nodejs-npm yarn \
-    && apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing wqy-zenhei \
-	&& rm -rf /var/lib/apt/lists/* \
-    /var/cache/apk/* \
-    /usr/share/man \
-    /tmp/*
+# 複製字體檔案 (如果有自定義字體)
+COPY ./fonts/ /usr/share/fonts/
 
-# Add Chrome as a user
-RUN mkdir -p /usr/src/app \
-    && adduser -D chrome \
-    && chown -R chrome:chrome /usr/src/app
-    
+# 更新字體快取
+RUN fc-cache -fv
+
+# 建立應用程式目錄和用戶
+RUN mkdir -p /usr/src/app && \
+    adduser -D -s /bin/sh chrome && \
+    chown -R chrome:chrome /usr/src/app
+
 # Run Chrome as non-privileged
 USER chrome
 # COPY ./script.sh /home/chrome
@@ -49,9 +57,12 @@ WORKDIR /usr/src/app
 ENV CHROME_BIN=/usr/bin/chromium-browser \
     CHROME_PATH=/usr/lib/chromium/
 
-COPY --chown=chrome package.json package-lock.json ./
+COPY --chown=chrome package.json ./
 
 RUN npm install express mustache-express puppeteer qrcode --save
+
+# RUN npm ci --only=production && \
+#     npm cache clean --force
 
 COPY --chown=chrome . ./
 
